@@ -1,0 +1,40 @@
+##Clustering by morphology of downstream DA2 neurons. Coloured by stage of segmentation. Colouring part of script stolen form Nik 
+
+
+library(catmaid)
+library(nat)
+library(nat.flybrains)
+library(elmr)
+library(dendroextras)
+
+
+post_neurons <- read.neurons.catmaid("annotation:FML - downstream of DA2$")
+priors <- read.neurons.catmaid("annotation:FML - downstream of first DA2$")
+
+post_all_skids <- catmaid_skids("annotation:FML - downstream of DA2$")
+post_secondary_skids <- catmaid_skids("annotation:FML - downstream of first DA2$")
+
+
+
+Posts.dots <- dotprops(post_neurons/1e3)
+
+post.matrix <- nblast_allbyall(Posts.dots)
+post.clusted <- as.dendrogram(nhclust(scoremat = post.matrix))
+
+plot(post.clusted, main = 'whole neuron morphology')
+
+
+col.leaves <- function(n) {
+  if(is.leaf(n)) {
+    if(labels(n) %in% post_secondary_skids) {
+      attr(n, 'edgePar')$col = 'red'
+    } else {
+      attr(n, 'edgePar')$col = 'blue'
+    }
+  }
+  return(n)
+}
+
+fin <- dendrapply(post.clusted, col.leaves)
+
+plot(fin)
